@@ -1,5 +1,11 @@
 package com.nakdevelopment.nakrupa.simpletodo;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,11 +14,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
-
-    private int toggle = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,11 +32,40 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
+
+
+        DbHelper dbh = new DbHelper(getBaseContext());
+        DbManager DbMan = new DbManager(dbh);
+        ArrayList<String> list = new ArrayList<String>();
+
+        //Collect the tdl data and place into array list.
+        try {
+            list = DbMan.execute("get_tdl").get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        list.add("To do item One");
+        ListView listView = (ListView) findViewById(R.id.todoList);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list);
+        listView.setAdapter(adapter);
+
+        //If the list is empty then remove the listview and replace with text.
+        if(list.size() == 0){
+            listView.setVisibility(listView.GONE);
+        }
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setImageResource(R.drawable.plus);
+        fab.setBackgroundTintList(ColorStateList.valueOf(Color.DKGRAY));
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addTodoList();
+                Intent createList = new Intent(getBaseContext(), CreateTodoList.class);
+                startActivity(createList);
             }
         });
     }
@@ -53,7 +92,4 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void addTodoList(){
-
-    }
 }
